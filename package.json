@@ -1,0 +1,15 @@
+{
+  "name": "iotagram",
+  "version": "0.1.0",
+  "description": "r/place driven by iota transactions",
+  "license": "MIT",
+  "author": {
+    "name": "Pat Sissons",
+    "email": "patricksissons@gmail.com",
+    "url": "http://github/patsissons"
+  },
+  "scripts": {
+    "start": "",
+    "test": ""
+  }
+}
