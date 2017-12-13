@@ -1,33 +1,25 @@
 import * as IOTA from 'iota.lib.js';
-import {} from 'jsonwebtoken';
-import { Observable, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 
-export class IotaTransactionMonitor extends Subscription {
-  public static getTransactions(iota: IOTA, address: string) {
-    const wrapped = Observable
-      .bindNodeCallback(iota.api.findTransactionObjects);
-
-    return wrapped({
-      addresses: [
-        address,
-      ],
-    });
-  }
-
+export class IotaTransactionMonitor {
   public readonly transactions: Observable<IOTA.TransactionObject>;
 
   constructor(
     iota: IOTA,
     address: string,
     interval = 300,
-    unsubscribe?: () => void,
   ) {
-    super(unsubscribe);
+    const findTransactionObjects = Observable
+      .bindNodeCallback(iota.api.findTransactionObjects);
 
     this.transactions = Observable
       .interval(interval)
       .flatMap(x => {
-        return IotaTransactionMonitor.getTransactions(iota, address);
+        return findTransactionObjects({
+          addresses: [
+            address,
+          ],
+        });
       })
       .flatMap(x => {
         return Observable

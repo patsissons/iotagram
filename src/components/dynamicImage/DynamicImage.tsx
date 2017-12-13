@@ -1,15 +1,9 @@
 import * as React from 'react';
 import { Observable, Subscription, Scheduler } from 'rxjs';
 
-export const RGBAPixelSize = 4 * Uint8ClampedArray.BYTES_PER_ELEMENT;
-export const DefaultRateLimit = 100;
+import { IotaGramPixelPayload, Point2D, RGBAPixelSize } from '../../lib';
 
-export interface RGBAPixel {
-  r: number;
-  g: number;
-  b: number;
-  a: number;
-}
+export const DefaultRateLimit = 100;
 
 export interface DynamicImageProps {
   width?: number;
@@ -39,7 +33,7 @@ export class DynamicImage extends React.Component<DynamicImageProps> {
 
     const randomPixels = this.renderRandomPixels()
       .do(x => {
-        this.setPixel(x.x, x.y, x.pixel, false);
+        this.setPixel(x, false);
       })
       .share();
 
@@ -91,15 +85,17 @@ export class DynamicImage extends React.Component<DynamicImageProps> {
     );
   }
 
-  private renderRandomPixels() {
+  private renderRandomPixels(): Observable<IotaGramPixelPayload> {
     return Observable
       .interval(0, Scheduler.asap)
       .take(0)
       .map(() => {
         return {
-          x: Math.floor(Math.random() * this.props.width!),
-          y: Math.floor(Math.random() * this.props.height!),
-          pixel: {
+          location: {
+            x: Math.floor(Math.random() * this.props.width!),
+            y: Math.floor(Math.random() * this.props.height!),
+          },
+          color: {
             r: Math.floor(Math.random() * 256),
             g: Math.floor(Math.random() * 256),
             b: Math.floor(Math.random() * 256),
@@ -128,19 +124,19 @@ export class DynamicImage extends React.Component<DynamicImageProps> {
     }
   }
 
-  protected setPixel(x: number, y: number, pixel: RGBAPixel, paint = false) {
+  protected setPixel(data: IotaGramPixelPayload, paint = false) {
     if (this.imageContext != null && this.imageData != null) {
-      const index = this.getPixelIndex(x, y, this.imageData.width);
+      const index = this.getPixelIndex(data.location, this.imageData.width);
 
-      this.imageData.data.set([ pixel.r, pixel.g, pixel.b, pixel.a ], index);
+      this.imageData.data.set([ data.color.r, data.color.g, data.color.b, data.color.a || 255 ], index);
 
       if (paint) {
-        this.imageContext.putImageData(this.imageData, 0, 0, x, y, 1, 1);
+        this.imageContext.putImageData(this.imageData, 0, 0, data.location.x, data.location.y, 1, 1);
       }
     }
   }
 
-  protected getPixelIndex(x: number, y: number, width: number) {
-    return (x + y * width) * RGBAPixelSize;
+  protected getPixelIndex(location: Point2D, width: number) {
+    return (location.x + location.y * width) * RGBAPixelSize;
   }
 }

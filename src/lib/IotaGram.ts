@@ -5,6 +5,7 @@ import { Observable, Subscription } from 'rxjs';
 import { IotaTransactionMonitor } from './IotaTransactionMonitor';
 
 export const CurrentVersion =  1;
+export const RGBAPixelSize = 4 * Uint8ClampedArray.BYTES_PER_ELEMENT;
 
 export interface RGBAPixel {
   r: number;
@@ -82,14 +83,16 @@ export class IotaGram extends Subscription {
 
     this.datagrams = txMonitor.transactions
       .map(x => {
-        const token = iota.utils.fromTrytes(x.signatureMessageFragment.replace(/9+$/, ''));
-
-        const data = decode(token) as IotaGramRequest;
-
-        return IotaGram.sanitize(data);
+        return this.getDataGram(iota, x);
       })
       .share();
+  }
 
-    this.add(txMonitor);
+  protected getDataGram(iota: IOTA, tx: IOTA.TransactionObject) {
+    const token = iota.utils.fromTrytes(tx.signatureMessageFragment.replace(/9+$/, ''));
+
+    const data = decode(token) as IotaGramRequest;
+
+    return IotaGram.sanitize(data);
   }
 }
