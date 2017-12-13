@@ -4,6 +4,7 @@ import { AppContainer } from 'react-hot-loader';
 
 import './types/globals';
 import './types/augmentations';
+import './lib';
 
 import './style/app.css';
 

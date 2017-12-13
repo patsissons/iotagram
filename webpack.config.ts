@@ -44,14 +44,4 @@ if (definePlugin != null) {
   definePlugin.definitions.WEBPACK_DEV_SERVER = true;
 }
 
-config.plugins.push(
-  new webpack.NamedModulesPlugin(),
-  new webpack.HotModuleReplacementPlugin(),
-  new HtmlWebpackPlugin({
-    title: 'react-hot-ts',
-    chunksSortMode: 'dependency',
-    template: path.resolve(__dirname, './src/index.ejs'),
-  }),
-);
-
 export default config;

@@ -56,14 +56,24 @@ export class DynamicImage extends React.Component<DynamicImageProps> {
             return {
               rate: x.length,
               total: a.total + x.length,
+              start: a.start,
             };
           },
-          { rate: 0, total: 0 },
+          { rate: 0, total: 0, start: new Date() },
         )
-        .subscribe(x => {
+        .do(x => {
+          let duration = (new Date().getTime() - x.start.getTime()) / 1000;
+          const seconds = duration % 60;
+          duration /= 60;
+          const minutes = duration % 60;
+          const hours = duration / 60;
+
+          const len = `${ Math.floor(hours) }:${ minutes < 10 ? '0' : '' }${ Math.floor(minutes) }:${ seconds < 10 ? '0' : '' }${ Math.floor(seconds) }`;
+
           // tslint:disable-next-line no-console
-          console.debug(`${ x.rate } px/sec (${ x.total })`);
-        }),
+          console.debug(`${ x.rate } px/sec (${ x.total } over ${ len }, ${ (x.total / seconds).toFixed(2) } px/sec)`);
+        })
+        .subscribe(),
     );
   }
 
@@ -84,6 +94,7 @@ export class DynamicImage extends React.Component<DynamicImageProps> {
   private renderRandomPixels() {
     return Observable
       .interval(0, Scheduler.asap)
+      .take(0)
       .map(() => {
         return {
           x: Math.floor(Math.random() * this.props.width!),

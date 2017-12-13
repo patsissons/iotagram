@@ -1,10 +1,18 @@
+import * as path from 'path';
 import * as webpack from 'webpack';
+import * as FaviconsWebpackPlugin from 'favicons-webpack-plugin';
+import * as HtmlWebpackPlugin from 'html-webpack-plugin';
 
 // tslint:disable-next-line:no-var-requires
 const npmPackage = require('./package.json');
 
 export const commonConfig: Partial<webpack.Configuration> = {
   devtool: 'source-map',
+  externals: {
+    // just ignore attempts to use fs
+    fs: 'var null',
+    child_process: 'var null',
+  },
   module: {
     rules: [
       { test: /\.css$/, loaders: [ 'style-loader', 'css-loader' ] },
@@ -22,6 +30,13 @@ export const commonConfig: Partial<webpack.Configuration> = {
       TEST: false,
       WEBPACK_DEV_SERVER: false,
       VERSION: JSON.stringify(npmPackage.version),
+    }),
+    new webpack.NamedModulesPlugin(),
+    new FaviconsWebpackPlugin('./src/assets/logo.png'),
+    new HtmlWebpackPlugin({
+      title: 'iotagram',
+      chunksSortMode: 'dependency',
+      template: path.resolve(__dirname, './src/index.ejs'),
     }),
   ],
   resolve: {
