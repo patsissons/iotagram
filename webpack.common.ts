@@ -8,11 +8,9 @@ const npmPackage = require('./package.json');
 
 export const commonConfig: Partial<webpack.Configuration> = {
   devtool: 'source-map',
-  externals: {
-    // just ignore attempts to use fs
-    fs: 'var null',
-    child_process: 'var null',
-  },
+  externals: [
+    { xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}' },
+  ],
   module: {
     rules: [
       { test: /\.css$/, loaders: [ 'style-loader', 'css-loader' ] },

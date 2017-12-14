@@ -7,14 +7,15 @@ export class IotaTransactionMonitor {
   constructor(
     iota: IOTA,
     address: string,
-    interval = 300,
+    interval = 5 * 60 * 1000,
   ) {
-    const findTransactionObjects = Observable
+    let findTransactionObjects = Observable
       .bindNodeCallback(iota.api.findTransactionObjects);
+    findTransactionObjects = findTransactionObjects.bind(iota.api);
 
     this.transactions = Observable
-      .interval(interval)
-      .flatMap(x => {
+      .timer(0, interval)
+      .flatMap(() => {
         return findTransactionObjects({
           addresses: [
             address,

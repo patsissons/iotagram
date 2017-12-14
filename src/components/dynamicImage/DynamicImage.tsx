@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Observable, Subscription, Scheduler } from 'rxjs';
 
-import { IotaGramPixelPayload, Point2D, RGBAPixelSize } from '../../lib';
+import { IotaGram, IotaGramPixelPayload, Point2D, RGBAPixelSize } from '../../lib';
 
 export const DefaultRateLimit = 100;
 
@@ -19,16 +19,39 @@ export class DynamicImage extends React.Component<DynamicImageProps> {
 
   protected imageContext: CanvasRenderingContext2D | undefined | null;
   protected imageData: ImageData | undefined;
+  protected iotaGram: IotaGram | undefined;
   protected subscription = Subscription.EMPTY;
 
   componentDidMount() {
     this.subscription = new Subscription();
+    this.iotaGram = new IotaGram('http://node.lukaseder.de:14265', 'QPM9ZSUPIJKPYFYUWESXLHEKMUJZ9TLBDWUTPZGOMMDAFEFBWXAYBTIEYOAUR9UYEYKQDP9MYQYOBCQLAEJLVDWRBW');
+
+    this.subscription.add(
+      this.iotaGram.datagrams
+        .subscribe(
+          x => {
+            if (x.payload != null) {
+              this.setPixel(x.payload, true);
+            }
+          },
+          e => {
+            // tslint:disable-next-line no-console
+            console.error(e);
+          },
+        ),
+    );
 
     this.subscription.add(
       this.autoRepaint()
-        .subscribe(x => {
-          this.repaint();
-        }),
+        .subscribe(
+          x => {
+            this.repaint();
+          },
+          e => {
+            // tslint:disable-next-line no-console
+            console.error(e);
+          },
+        ),
     );
 
     const randomPixels = this.renderRandomPixels()

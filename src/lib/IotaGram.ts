@@ -50,8 +50,12 @@ export interface IotaGramRequest {
   payload?: IotaGramPayload;
 }
 
-export class IotaGram extends Subscription {
-  public static sanitize(data: IotaGramRequest): IotaGramData {
+export class IotaGram {
+  public static sanitize(data: IotaGramRequest | undefined): IotaGramData | undefined {
+    if (data == null) {
+      return undefined;
+    }
+
     return {
       type: typeof data.type === 'string' ? IotaGramTypes[data.type] : (data.type || IotaGramTypes.Action),
       action: typeof data.action === 'string' ? IotaGramActions[data.action] : (data.action || IotaGramActions.SetPixel),
@@ -67,13 +71,13 @@ export class IotaGram extends Subscription {
     public address: string,
     public publicKey?: string,
     interval?: number,
-    unsubscribe?: () => void,
   ) {
-    super(unsubscribe);
-
     const iota = new IOTA({
       provider,
     });
+
+    // tslint:disable-next-line no-console
+    console.debug(`iota.lib loaded (v${ iota.version })`);
 
     const txMonitor = new IotaTransactionMonitor(
       iota,
@@ -85,13 +89,18 @@ export class IotaGram extends Subscription {
       .map(x => {
         return this.getDataGram(iota, x);
       })
+      .filterNull()
       .share();
   }
 
   protected getDataGram(iota: IOTA, tx: IOTA.TransactionObject) {
+    if (tx.signatureMessageFragment == null) {
+      return undefined;
+    }
+
     const token = iota.utils.fromTrytes(tx.signatureMessageFragment.replace(/9+$/, ''));
 
-    const data = decode(token) as IotaGramRequest;
+    const data = decode(token) as IotaGramRequest | undefined;
 
     return IotaGram.sanitize(data);
   }
